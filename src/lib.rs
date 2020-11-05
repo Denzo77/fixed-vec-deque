@@ -1313,6 +1313,24 @@ where
     }
 }
 
+impl<'a, T: 'a> DoubleEndedIterator for Iter<'a, T>
+where
+    T: Array,
+{
+
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.len == 0 {
+            return None;
+        }
+
+        self.head = T::wrap_sub(self.head, 1);
+        let head = self.head;
+
+        self.len -= 1;
+        Some(unsafe { &*self.data.add(head) })
+    }
+}
+
 /// An iterator over the elements of a `FixedVecDeque`.
 ///
 /// This `struct` is created by the [`iter`] method on [`FixedVecDeque`]. See its
@@ -1346,6 +1364,25 @@ where
         Some(unsafe { &mut *self.data.add(tail) })
     }
 }
+
+impl<'a, T: 'a> DoubleEndedIterator for IterMut<'a, T>
+where
+    T: Array,
+{
+
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.len == 0 {
+            return None;
+        }
+
+        self.head = T::wrap_sub(self.head, 1);
+        let head = self.head;
+
+        self.len -= 1;
+        Some(unsafe { &mut *self.data.add(head) })
+    }
+}
+
 
 impl<'a, T: 'a> IntoIterator for &'a FixedVecDeque<T>
 where
@@ -1857,6 +1894,16 @@ mod tests {
                 }
             }
         }
+    }
+    
+    #[test]
+    fn test_double_ended_iter() {
+        // make sure the data wraps over the end of the underlying buffer
+        let deq: FixedVecDeque<[u32; 4]> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8].into_iter().collect();
+
+        assert!(!deq.is_empty());
+        assert!(deq.is_full());
+        assert_eq!(deq.iter().rev().collect::<Vec<_>>(), vec![&8, &7, &6, &5]);
     }
 }
 
