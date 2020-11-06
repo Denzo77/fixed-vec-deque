@@ -1311,6 +1311,11 @@ where
         self.len -= 1;
         Some(unsafe { &*self.data.add(tail) })
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.len;
+        (len, Some(len))
+    }
 }
 
 impl<'a, T: 'a> DoubleEndedIterator for Iter<'a, T>
@@ -1367,6 +1372,11 @@ where
         let tail = T::wrap_sub(self.head, self.len);
         self.len -= 1;
         Some(unsafe { &mut *self.data.add(tail) })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.len;
+        (len, Some(len))
     }
 }
 
@@ -1914,6 +1924,16 @@ mod tests {
         assert!(deq.is_full());
         assert_eq!(deq.iter().rev().collect::<Vec<_>>(), vec![&8, &7, &6, &5]);
         assert_eq!(deq.iter().rev().rev().collect::<Vec<_>>(), vec![&5, &6, &7, &8]);
+    }
+
+    #[test]
+    fn test_exact_size_iter() {
+        // make sure the data wraps over the end of the underlying buffer
+        let deq: FixedVecDeque<[u32; 4]> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8].into_iter().collect();
+
+        assert!(!deq.is_empty());
+        assert!(deq.is_full());
+        assert_eq!(deq.iter().rev().take(3).rev().collect::<Vec<_>>(), vec![&6, &7, &8]);
     }
 }
 
