@@ -1331,6 +1331,11 @@ where
     }
 }
 
+impl<'a, T: 'a> ExactSizeIterator for Iter<'a, T>
+where
+    T: Array,
+{ }
+
 /// An iterator over the elements of a `FixedVecDeque`.
 ///
 /// This `struct` is created by the [`iter`] method on [`FixedVecDeque`]. See its
@@ -1383,6 +1388,10 @@ where
     }
 }
 
+impl<'a, T: 'a> ExactSizeIterator for IterMut<'a, T>
+where
+    T: Array,
+{ }
 
 impl<'a, T: 'a> IntoIterator for &'a FixedVecDeque<T>
 where
@@ -1904,6 +1913,7 @@ mod tests {
         assert!(!deq.is_empty());
         assert!(deq.is_full());
         assert_eq!(deq.iter().rev().collect::<Vec<_>>(), vec![&8, &7, &6, &5]);
+        assert_eq!(deq.iter().rev().rev().collect::<Vec<_>>(), vec![&5, &6, &7, &8]);
     }
 }
 
